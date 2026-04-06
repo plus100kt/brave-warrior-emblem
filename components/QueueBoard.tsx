@@ -100,15 +100,12 @@ export default function QueueBoard({ members, emblemKeys }: Props) {
                 ) : (
                   displayed.map((entry, i) => (
                     <div key={entry.member.id} className="queueBlock" style={i < 3 ? RANK_STYLES[i] : REST_STYLE}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                         <span className="badge" style={i < 3 ? RANK_BADGE_STYLES[i] : { background: "rgba(0,0,0,0.05)", color: "#6b7280", border: "1px solid #d1d5db" }}>
                           {i < 3 ? RANK_LABELS[i] : `${i + 1}순위`}
                         </span>
                         <strong>{entry.member.nickname}</strong>
-                        <span className="muted">· {entry.member.job}</span>
-                      </div>
-                      <div className="muted" style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 8 }}>
-                        <span>비경 {formatAbyss(entry.member)} · 직업 내 {entry.classRank}위 · {entry.count}/{entry.max}</span>
+                        <span className="muted">· {entry.member.job} {entry.classRank}위 · 비경 {formatAbyss(entry.member)} · 진행현황 {entry.count}/{entry.max}</span>
                         <span className="badge" style={entry.goal === "전설"
                           ? { background: "rgba(217,119,6,0.12)", color: "#b45309", border: "1px solid rgba(217,119,6,0.3)" }
                           : { background: "rgba(220,38,38,0.1)", color: "#dc2626", border: "1px solid rgba(220,38,38,0.3)" }
