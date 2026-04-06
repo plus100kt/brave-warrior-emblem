@@ -18,7 +18,7 @@ export async function PUT(req: Request, { params }: Params) {
       abyssFloor: Number(body.abyssFloor),
       abyssStage: Number(body.abyssStage),
       emblems: {
-        create: (body.emblems ?? []).map((item: { emblemKey: string; count: number }) => ({
+        create: (body.emblems ?? []).map((item: { emblemKey: string; count: number; goal?: string }) => ({
           emblemKey: item.emblemKey,
           count: Math.max(0, Math.min(9, Number(item.count) || 0)),
           goal: item.goal === "전설" ? "전설" : "신화"
