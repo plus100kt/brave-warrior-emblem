@@ -1,0 +1,37 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Member {
+  id         String         @id @default(uuid())
+  nickname   String
+  job        String
+  abyssFloor Int
+  abyssStage Int
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  emblems    MemberEmblem[]
+}
+
+model MemberEmblem {
+  id        String   @id @default(uuid())
+  emblemKey String
+  count     Int      @default(0)
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, emblemKey])
+}
+
+model Emblem {
+  id       String @id @default(uuid())
+  category String
+  name     String
+
+  @@unique([category, name])
+}
