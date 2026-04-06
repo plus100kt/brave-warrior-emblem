@@ -78,6 +78,7 @@ export default function QueueBoard({ members, emblemKeys }: Props) {
         <>
           {paged.map((key) => {
             const queue = queueForEmblem(members, key);
+            if (queue.length === 0) return null;
             const isExpanded = expandedKeys.has(key);
             const displayed = isExpanded ? queue : queue.slice(0, 3);
 

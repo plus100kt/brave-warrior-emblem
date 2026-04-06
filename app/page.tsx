@@ -20,6 +20,11 @@ export default function Page() {
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
 
+  const showStatus = (msg: string) => {
+    setStatus(msg);
+    setTimeout(() => setStatus(""), 3000);
+  };
+
   const loadMembers = async () => {
     const data = await api.fetchMembers();
     setMembers(data as Member[]);
@@ -67,7 +72,7 @@ export default function Page() {
       try {
         setError("");
         await api.updateMember(id, payload);
-        setStatus("전투원 정보를 수정했습니다.");
+        showStatus("전투원 정보를 수정했습니다.");
         await loadMembers();
       } catch (e) { setError(e instanceof Error ? e.message : "수정 실패"); }
     },
@@ -76,7 +81,7 @@ export default function Page() {
       try {
         setError("");
         await api.deleteMember(id);
-        setStatus("전투원을 삭제했습니다.");
+        showStatus("전투원을 삭제했습니다.");
         setSelectedId(null);
         await loadMembers();
       } catch (e) { setError(e instanceof Error ? e.message : "삭제 실패"); }
@@ -161,7 +166,7 @@ export default function Page() {
             try {
               setError("");
               await api.createEmblem(category, name);
-              setStatus(`"${name}" 엠블럼을 등록했습니다.`);
+              showStatus(`"${name}" 엠블럼을 등록했습니다.`);
               await loadEmblems();
             } catch (e) { setError(e instanceof Error ? e.message : "등록 실패"); }
           }}
@@ -169,59 +174,55 @@ export default function Page() {
             try {
               setError("");
               await api.deleteEmblem(id);
-              setStatus("엠블럼을 삭제했습니다.");
+              showStatus("엠블럼을 삭제했습니다.");
               await loadEmblems();
             } catch (e) { setError(e instanceof Error ? e.message : "삭제 실패"); }
           }}
         />
       )}
 
-      {(tab === "view" || tab === "edit") && (
+      {tab === "edit" && (
+        <MemberForm
+          wide
+          member={null}
+          emblemCatalog={emblemCatalog}
+          onCreate={async (payload) => {
+            try {
+              setError("");
+              await api.createMember(payload);
+              showStatus("전투원을 생성했습니다.");
+              await loadMembers();
+            } catch (e) { setError(e instanceof Error ? e.message : "생성 실패"); }
+          }}
+          onUpdate={async () => {}}
+          onDelete={async () => {}}
+        />
+      )}
+
+      {tab === "view" && (
         <div className="grid">
-          <div>
-            {tab === "view" ? (
-              <MemberList
-                members={members}
-                selectedJob={selectedJob}
-                selectedId={selectedId}
-                onSelectJob={setSelectedJob}
-                onSelectMember={(member) => {
-                  setSelectedId(member.id);
-                  setSelectedJob(member.job);
-                }}
+          <MemberList
+            members={members}
+            selectedJob={selectedJob}
+            selectedId={selectedId}
+            onSelectJob={setSelectedJob}
+            onSelectMember={(member) => {
+              setSelectedId(member.id);
+              setSelectedJob(member.job);
+            }}
+          />
+          <div className="sidePanel">
+            {selectedMember ? (
+              <MemberForm
+                member={selectedMember}
+                {...memberFormProps}
+                onCreate={async () => {}}
               />
             ) : (
-              <MemberForm
-                member={null}
-                emblemCatalog={emblemCatalog}
-                onCreate={async (payload) => {
-                  try {
-                    setError("");
-                    await api.createMember(payload);
-                    setStatus("전투원을 생성했습니다.");
-                    await loadMembers();
-                  } catch (e) { setError(e instanceof Error ? e.message : "생성 실패"); }
-                }}
-                onUpdate={async () => {}}
-                onDelete={async () => {}}
-              />
-            )}
-          </div>
-
-          <div className="sidePanel">
-            {tab === "view" && (
-              selectedMember ? (
-                <MemberForm
-                  member={selectedMember}
-                  {...memberFormProps}
-                  onCreate={async () => {}}
-                />
-              ) : (
-                <div className="card">
-                  <h3>전투원 수정</h3>
-                  <div className="infoBox">왼쪽 목록에서 전투원을 선택하시면 정보를 수정할 수 있습니다.</div>
-                </div>
-              )
+              <div className="card">
+                <h3>전투원 수정</h3>
+                <div className="infoBox">왼쪽 목록에서 전투원을 선택하시면 정보를 수정할 수 있습니다.</div>
+              </div>
             )}
           </div>
         </div>
