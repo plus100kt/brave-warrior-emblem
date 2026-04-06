@@ -22,6 +22,7 @@ model MemberEmblem {
   id        String   @id @default(uuid())
   emblemKey String
   count     Int      @default(0)
+  goal      String   @default("전설")
   memberId  String
   member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
 

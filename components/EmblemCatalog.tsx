@@ -45,7 +45,7 @@ export default function EmblemCatalog({ emblems, onCreate, onDelete }: Props) {
             </select>
           </div>
           <div>
-            <label className="label">보스 이름</label>
+            <label className="label">엠블럼 이름</label>
             <input
               className="input"
               value={name}

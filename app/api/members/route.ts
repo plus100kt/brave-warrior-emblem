@@ -20,7 +20,8 @@ export async function POST(req: Request) {
       emblems: {
         create: (body.emblems ?? []).map((item: { emblemKey: string; count: number }) => ({
           emblemKey: item.emblemKey,
-          count: Math.max(0, Math.min(9, Number(item.count) || 0))
+          count: Math.max(0, Math.min(9, Number(item.count) || 0)),
+          goal: item.goal === "전설" ? "전설" : "신화"
         }))
       }
     },

@@ -1,10 +1,14 @@
 export const JOBS = ["어쎄신", "프리스트", "워리어", "위자드", "아처"] as const;
 export type Job = (typeof JOBS)[number];
 
+export type Goal = "전설" | "신화";
+export const GOAL_MAX: Record<Goal, number> = { 전설: 3, 신화: 9 };
+
 export type MemberEmblem = {
   id?: string;
   emblemKey: string;
   count: number;
+  goal: Goal;
 };
 
 export type Member = {

@@ -114,7 +114,7 @@ export default function Page() {
         <div>
           <div className="card" style={{ marginBottom: 20 }}>
             <h2>엠블럼 검색</h2>
-            <div className="cardDesc">보스 이름으로 검색하거나, 분류와 엠블럼을 선택하여 조회하실 수 있습니다.</div>
+            <div className="cardDesc">엠블럼 이름으로 검색하거나, 분류와 엠블럼을 선택하여 조회하실 수 있습니다.</div>
             <input
               className="search"
               value={keyword}
