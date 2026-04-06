@@ -24,7 +24,10 @@ export default function MemberForm({ member, emblemCatalog, wide = false, onCrea
   const [category, setCategory] = useState<Category>("기교");
   const [emblemName, setEmblemName] = useState<string>("");
   const [goal, setGoal] = useState<Goal>("전설");
-  const [addCount, setAddCount] = useState(0);
+  const [addCountStr, setAddCountStr] = useState("0");
+  const [countStrs, setCountStrs] = useState<Record<string, string>>({});
+  const [floorStr, setFloorStr] = useState(String(draft.abyssFloor));
+  const [stageStr, setStageStr] = useState(String(draft.abyssStage));
 
   const namesForCategory = emblemCatalog.filter((e) => e.category === category).map((e) => e.name);
 
@@ -32,8 +35,12 @@ export default function MemberForm({ member, emblemCatalog, wide = false, onCrea
     if (member) {
       const { id: _, ...rest } = member;
       setDraft(rest);
+      setFloorStr(String(member.abyssFloor));
+      setStageStr(String(member.abyssStage));
     } else {
       setDraft(createBlank());
+      setFloorStr("4");
+      setStageStr("1");
     }
   }, [member]);
 
@@ -47,15 +54,18 @@ export default function MemberForm({ member, emblemCatalog, wide = false, onCrea
     const emblemKey = `${category}|${emblemName}`;
     if (draft.emblems.some((e) => e.emblemKey === emblemKey)) return;
     const max = GOAL_MAX[goal];
-    setDraft((prev) => ({ ...prev, emblems: [...prev.emblems, { emblemKey, count: Math.max(0, Math.min(max, addCount)), goal }] }));
-    setAddCount(0);
+    const count = Math.max(0, Math.min(max, Number(addCountStr) || 0));
+    setDraft((prev) => ({ ...prev, emblems: [...prev.emblems, { emblemKey, count, goal }] }));
+    setAddCountStr("0");
   };
 
   const submit = async () => {
     if (!draft.nickname.trim()) { alert("닉네임을 입력해주세요."); return; }
-    const payload = { ...draft, nickname: draft.nickname.trim() };
+    const floor = Math.max(1, Number(floorStr) || 1);
+    const stage = Math.max(1, Number(stageStr) || 1);
+    const payload = { ...draft, nickname: draft.nickname.trim(), abyssFloor: floor, abyssStage: stage };
     if (member) await onUpdate(member.id, payload);
-    else { await onCreate(payload); setDraft(createBlank()); }
+    else { await onCreate(payload); setDraft(createBlank()); setFloorStr("4"); setStageStr("1"); }
   };
 
   const basicInfo = (
@@ -77,11 +87,11 @@ export default function MemberForm({ member, emblemCatalog, wide = false, onCrea
       <div className="twoCol">
         <div>
           <label className="label">비경 층</label>
-          <input className="input" type="number" min={1} value={draft.abyssFloor} onChange={(e) => setDraft({ ...draft, abyssFloor: Number(e.target.value) || 1 })} />
+          <input className="input" type="number" min={1} value={floorStr} onChange={(e) => setFloorStr(e.target.value)} onBlur={() => setFloorStr(String(Math.max(1, Number(floorStr) || 1)))} />
         </div>
         <div>
           <label className="label">비경 스테이지</label>
-          <input className="input" type="number" min={1} value={draft.abyssStage} onChange={(e) => setDraft({ ...draft, abyssStage: Number(e.target.value) || 1 })} />
+          <input className="input" type="number" min={1} value={stageStr} onChange={(e) => setStageStr(e.target.value)} onBlur={() => setStageStr(String(Math.max(1, Number(stageStr) || 1)))} />
         </div>
       </div>
     </div>
@@ -118,8 +128,9 @@ export default function MemberForm({ member, emblemCatalog, wide = false, onCrea
           </div>
           <div>
             <label className="label">현재 개수</label>
-            <input className="input" type="number" min={0} max={GOAL_MAX[goal]} value={addCount}
-              onChange={(e) => setAddCount(Math.max(0, Math.min(GOAL_MAX[goal], Number(e.target.value) || 0)))} />
+            <input className="input" type="number" min={0} max={GOAL_MAX[goal]} value={addCountStr}
+              onChange={(e) => setAddCountStr(e.target.value)}
+              onBlur={() => setAddCountStr(String(Math.max(0, Math.min(GOAL_MAX[goal], Number(addCountStr) || 0))))} />
           </div>
           <div style={{ alignSelf: "end" }}>
             <button type="button" className="ghostBtn" onClick={addEmblem} disabled={!emblemName} style={{ whiteSpace: "nowrap", width: "100%" }}>+ 추가</button>
@@ -156,8 +167,9 @@ export default function MemberForm({ member, emblemCatalog, wide = false, onCrea
             </div>
             <div>
               <label className="label">개수</label>
-              <input className="input" type="number" min={0} max={GOAL_MAX[goal]} value={addCount}
-                onChange={(e) => setAddCount(Math.max(0, Math.min(GOAL_MAX[goal], Number(e.target.value) || 0)))} />
+              <input className="input" type="number" min={0} max={GOAL_MAX[goal]} value={addCountStr}
+                onChange={(e) => setAddCountStr(e.target.value)}
+                onBlur={() => setAddCountStr(String(Math.max(0, Math.min(GOAL_MAX[goal], Number(addCountStr) || 0))))} />
             </div>
             <div style={{ alignSelf: "end" }}>
               <button type="button" className="ghostBtn" onClick={addEmblem} disabled={!emblemName} style={{ whiteSpace: "nowrap", width: "100%" }}>+ 추가</button>
@@ -176,15 +188,17 @@ export default function MemberForm({ member, emblemCatalog, wide = false, onCrea
                 <div><span className="tag">{e.emblemKey.split("|")[0]}</span></div>
                 <div style={{ fontSize: 13 }}>{e.emblemKey.split("|")[1]}</div>
                 <span className="badge" style={GOAL_BADGE[e.goal]}>{e.goal}</span>
-                <input className="input" type="number" min={0} max={max} value={e.count}
-                  onChange={(ev) => setDraft((prev) => ({
-                    ...prev,
-                    emblems: prev.emblems.map((x) =>
-                      x.emblemKey === e.emblemKey
-                        ? { ...x, count: Math.max(0, Math.min(max, Number(ev.target.value) || 0)) }
-                        : x
-                    )
-                  }))}
+                <input className="input" type="number" min={0} max={max}
+                  value={countStrs[e.emblemKey] ?? String(e.count)}
+                  onChange={(ev) => setCountStrs((prev) => ({ ...prev, [e.emblemKey]: ev.target.value }))}
+                  onBlur={(ev) => {
+                    const clamped = Math.max(0, Math.min(max, Number(ev.target.value) || 0));
+                    setCountStrs((prev) => ({ ...prev, [e.emblemKey]: String(clamped) }));
+                    setDraft((prev) => ({
+                      ...prev,
+                      emblems: prev.emblems.map((x) => x.emblemKey === e.emblemKey ? { ...x, count: clamped } : x)
+                    }));
+                  }}
                 />
                 <button type="button" className="ghostBtn" onClick={() => setDraft((prev) => ({
                   ...prev, emblems: prev.emblems.filter((x) => x.emblemKey !== e.emblemKey)
@@ -219,11 +233,11 @@ export default function MemberForm({ member, emblemCatalog, wide = false, onCrea
           </div>
           <div>
             <label className="label">비경 층</label>
-            <input className="input" type="number" min={1} value={draft.abyssFloor} onChange={(e) => setDraft({ ...draft, abyssFloor: Number(e.target.value) || 1 })} />
+            <input className="input" type="number" min={1} value={floorStr} onChange={(e) => setFloorStr(e.target.value)} onBlur={() => setFloorStr(String(Math.max(1, Number(floorStr) || 1)))} />
           </div>
           <div>
             <label className="label">스테이지</label>
-            <input className="input" type="number" min={1} value={draft.abyssStage} onChange={(e) => setDraft({ ...draft, abyssStage: Number(e.target.value) || 1 })} />
+            <input className="input" type="number" min={1} value={stageStr} onChange={(e) => setStageStr(e.target.value)} onBlur={() => setStageStr(String(Math.max(1, Number(stageStr) || 1)))} />
           </div>
         </div>
         {emblemEditor}

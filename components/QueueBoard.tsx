@@ -85,9 +85,9 @@ export default function QueueBoard({ members, emblemKeys }: Props) {
             return (
               <div key={key} className="queueCard">
                 <div className="queueTitle" style={{ cursor: "pointer" }} onClick={() => toggleExpand(key)}>
-                  <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <div className="tag">{key.split("|")[0]}</div>
-                    <div className="queueName" style={{ marginTop: 8 }}>{key.split("|")[1]}</div>
+                    <div className="queueName">{key.split("|")[1]}</div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <div className="badge">{queue.length}명 진행 중</div>
