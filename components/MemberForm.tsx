@@ -166,7 +166,7 @@ export default function MemberForm({ member, emblemCatalog, wide = false, onCrea
               </div>
             </div>
             <div>
-              <label className="label">개수</label>
+              <label className="label">현재 개수</label>
               <input className="input" type="number" min={0} max={GOAL_MAX[goal]} value={addCountStr}
                 onChange={(e) => setAddCountStr(e.target.value)}
                 onBlur={() => setAddCountStr(String(Math.max(0, Math.min(GOAL_MAX[goal], Number(addCountStr) || 0))))} />
