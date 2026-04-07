@@ -39,7 +39,7 @@ export default function MemberList({ members, selectedJob, selectedId, onSelectJ
       </div>
 
       <div className="memberHeader">
-        <div>직업 순위</div><div>닉네임</div><div>직업</div><div>비경</div><div>진행 엠블럼</div>
+        <div>순위</div><div>닉네임</div><div>직업</div><div>비경</div><div>진행 엠블럼</div>
       </div>
 
       {filtered.length === 0 ? (

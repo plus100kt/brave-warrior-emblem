@@ -324,7 +324,7 @@ main { min-height: 100vh; }
 
 .memberHeader {
   display: grid;
-  grid-template-columns: 130px 100px 90px 80px 1fr;
+  grid-template-columns: 48px 130px 100px 90px 1fr;
   gap: 10px;
   align-items: center;
   color: var(--muted);
@@ -339,7 +339,7 @@ main { min-height: 100vh; }
 
 .memberRow {
   display: grid;
-  grid-template-columns: 130px 100px 90px 80px 1fr;
+  grid-template-columns: 48px 130px 100px 90px 1fr;
   gap: 10px;
   align-items: center;
   padding: 13px 14px;
