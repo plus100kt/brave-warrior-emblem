@@ -184,10 +184,16 @@ export default function MemberForm({ member, emblemCatalog, wide = false, onCrea
           {draft.emblems.map((e) => {
             const max = GOAL_MAX[e.goal];
             return (
-              <div key={e.emblemKey} className="emblemRow" style={{ gridTemplateColumns: "80px 1fr 60px 80px 64px" }}>
+              <div key={e.emblemKey} className="emblemRow" style={{ gridTemplateColumns: "80px 1fr 80px 80px 64px" }}>
                 <div><span className="tag">{e.emblemKey.split("|")[0]}</span></div>
                 <div style={{ fontSize: 13 }}>{e.emblemKey.split("|")[1]}</div>
-                <span className="badge" style={GOAL_BADGE[e.goal]}>{e.goal}</span>
+                <select className="select" value={e.goal} onChange={(ev) => setDraft((prev) => ({
+                  ...prev,
+                  emblems: prev.emblems.map((x) => x.emblemKey === e.emblemKey ? { ...x, goal: ev.target.value as Goal, count: Math.min(x.count, GOAL_MAX[ev.target.value as Goal]) } : x)
+                }))}>
+                  <option value="전설">전설</option>
+                  <option value="신화">신화</option>
+                </select>
                 <input className="input" type="number" min={0} max={max}
                   value={countStrs[e.emblemKey] ?? String(e.count)}
                   onChange={(ev) => setCountStrs((prev) => ({ ...prev, [e.emblemKey]: ev.target.value }))}
