@@ -36,3 +36,14 @@ model Emblem {
 
   @@unique([category, name])
 }
+
+model GrantLog {
+  id             String   @id @default(uuid())
+  memberId       String
+  memberNickname String
+  memberJob      String
+  emblemKey      String
+  quantity       Int
+  auctionType    String
+  grantedAt      DateTime @default(now())
+}

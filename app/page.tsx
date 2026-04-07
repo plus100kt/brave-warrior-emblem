@@ -4,12 +4,13 @@ import MemberForm from "@/components/MemberForm";
 import MemberList from "@/components/MemberList";
 import QueueBoard from "@/components/QueueBoard";
 import EmblemCatalog from "@/components/EmblemCatalog";
-import { CATEGORIES, EmblemItem, Job, Member } from "@/lib/data";
+import AuctionBoard from "@/components/AuctionBoard";
+import { CATEGORIES, EmblemItem, Goal, GOAL_MAX, GrantLog, GrantQueueItem, Job, Member } from "@/lib/data";
 import * as api from "@/lib/api";
 import { useEffect, useMemo, useState } from "react";
 
 export default function Page() {
-  const [tab, setTab] = useState<"emblem" | "view" | "edit" | "emblemCreate">("emblem");
+  const [tab, setTab] = useState<"emblem" | "view" | "edit" | "emblemCreate" | "auction1" | "auction2">("emblem");
   const [members, setMembers] = useState<Member[]>([]);
   const [emblemCatalog, setEmblemCatalog] = useState<EmblemItem[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job>("어쎄신");
@@ -17,6 +18,7 @@ export default function Page() {
   const [keyword, setKeyword] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("전체");
   const [selectedEmblemName, setSelectedEmblemName] = useState("전체");
+  const [grantLogs, setGrantLogs] = useState<GrantLog[]>([]);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
 
@@ -35,8 +37,13 @@ export default function Page() {
     setEmblemCatalog(data);
   };
 
+  const loadGrantLogs = async () => {
+    const data = await api.fetchGrantLogs();
+    setGrantLogs(data);
+  };
+
   useEffect(() => {
-    Promise.all([loadMembers(), loadEmblems()]).catch((e) =>
+    Promise.all([loadMembers(), loadEmblems(), loadGrantLogs()]).catch((e) =>
       setError(e instanceof Error ? e.message : "불러오기 실패")
     );
   }, []);
@@ -88,6 +95,52 @@ export default function Page() {
     }
   };
 
+  const handleGrantAll = async (items: GrantQueueItem[], auctionType: string) => {
+    setError("");
+    try {
+      // 같은 전투원에게 여러 엠블럼 지급 시 한 번에 업데이트
+      const byMember = new Map<string, GrantQueueItem[]>();
+      for (const item of items) {
+        const arr = byMember.get(item.memberId) ?? [];
+        arr.push(item);
+        byMember.set(item.memberId, arr);
+      }
+      for (const [memberId, memberItems] of byMember) {
+        const member = members.find((m) => m.id === memberId);
+        if (!member) continue;
+        let updatedEmblems = [...member.emblems];
+        for (const item of memberItems) {
+          const existing = updatedEmblems.find((e) => e.emblemKey === item.emblemKey);
+          if (existing) {
+            const max = GOAL_MAX[existing.goal];
+            updatedEmblems = updatedEmblems.map((e) =>
+              e.emblemKey === item.emblemKey ? { ...e, count: Math.min(e.count + item.quantity, max) } : e
+            );
+          } else {
+            updatedEmblems = [...updatedEmblems, { emblemKey: item.emblemKey, count: Math.min(item.quantity, GOAL_MAX["전설"]), goal: "전설" as Goal }];
+          }
+        }
+        const { id: _, ...rest } = member;
+        await api.updateMember(memberId, { ...rest, emblems: updatedEmblems });
+      }
+      // 로그 생성
+      for (const item of items) {
+        await api.createGrantLog({ ...item, auctionType });
+      }
+      showStatus(`${items.length}건 일괄 지급 완료`);
+      await Promise.all([loadMembers(), loadGrantLogs()]);
+    } catch (e) { setError(e instanceof Error ? e.message : "지급 실패"); }
+  };
+
+  const handleDeleteLog = async (logId: string) => {
+    try {
+      setError("");
+      await api.deleteGrantLog(logId);
+      showStatus("지급 로그를 삭제하고 재고를 복구했습니다.");
+      await Promise.all([loadMembers(), loadGrantLogs()]);
+    } catch (e) { setError(e instanceof Error ? e.message : "로그 삭제 실패"); }
+  };
+
   return (
     <main className="page">
       <section className="hero">
@@ -95,11 +148,17 @@ export default function Page() {
         <p>길드원 엠블럼 보급 현황을 관리하는 대시보드입니다.</p>
 
         <div className="toolbar">
+          <button className={`tabBtn ${tab === "auction1" ? "active" : ""}`} onClick={() => setTab("auction1")} type="button">
+            월화 경매
+          </button>
+          <button className={`tabBtn ${tab === "auction2" ? "active" : ""}`} onClick={() => setTab("auction2")} type="button">
+            수목 경매
+          </button>
           <button className={`tabBtn ${tab === "emblem" ? "active" : ""}`} onClick={() => setTab("emblem")} type="button">
-            엠블럼
+            엠블럼 현황
           </button>
           <button className={`tabBtn ${tab === "view" ? "active" : ""}`} onClick={() => setTab("view")} type="button">
-            전투원 데이터
+            전투원 현황
           </button>
           <button className={`tabBtn ${tab === "edit" ? "active" : ""}`} onClick={() => setTab("edit")} type="button">
             전투원 생성
@@ -108,7 +167,7 @@ export default function Page() {
             엠블럼 생성
           </button>
           <button className="ghostBtn" onClick={async () => {
-            await Promise.all([loadMembers(), loadEmblems()]);
+            await Promise.all([loadMembers(), loadEmblems(), loadGrantLogs()]);
           }} type="button">새로고침</button>
         </div>
         {status ? <div className="status">{status}</div> : null}
@@ -197,6 +256,16 @@ export default function Page() {
           onUpdate={async () => {}}
           onDelete={async () => {}}
         />
+      )}
+
+      {tab === "auction1" && (
+        <AuctionBoard members={members} emblemCatalog={emblemCatalog} rankMin={1} rankMax={3}
+          grantLogs={grantLogs} onGrantAll={handleGrantAll} onDeleteLog={handleDeleteLog} />
+      )}
+
+      {tab === "auction2" && (
+        <AuctionBoard members={members} emblemCatalog={emblemCatalog} rankMin={4} rankMax={7}
+          grantLogs={grantLogs} onGrantAll={handleGrantAll} onDeleteLog={handleDeleteLog} />
       )}
 
       {tab === "view" && (

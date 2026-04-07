@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m ':*)",
+      "Bash(npx tsc:*)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\plus1\\Documents\\emblem-prisma-crud\\app\\api\\grant-logs"
+    ]
+  }
+}

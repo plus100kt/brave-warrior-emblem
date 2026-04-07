@@ -32,5 +32,24 @@ export const ALL_EMBLEM_KEYS = Object.entries(EMBLEMS).flatMap(([category, names
 
 export type EmblemItem = { id: string; category: string; name: string };
 
+export type GrantLog = {
+  id: string;
+  memberId: string;
+  memberNickname: string;
+  memberJob: string;
+  emblemKey: string;
+  quantity: number;
+  auctionType: string;
+  grantedAt: string;
+};
+
+export type GrantQueueItem = {
+  memberId: string;
+  memberNickname: string;
+  memberJob: string;
+  emblemKey: string;
+  quantity: number;
+};
+
 export const CATEGORIES = ["기교", "지혜", "활력"] as const;
 export type Category = (typeof CATEGORIES)[number];
