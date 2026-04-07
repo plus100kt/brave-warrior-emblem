@@ -39,7 +39,7 @@ export default function MemberList({ members, selectedJob, selectedId, onSelectJ
       </div>
 
       <div className="memberHeader">
-        <div>닉네임</div><div>직업</div><div>비경</div><div>직업 순위</div><div>진행 엠블럼</div>
+        <div>직업 순위</div><div>닉네임</div><div>직업</div><div>비경</div><div>진행 엠블럼</div>
       </div>
 
       {filtered.length === 0 ? (
@@ -50,10 +50,10 @@ export default function MemberList({ members, selectedJob, selectedId, onSelectJ
             const globalIdx = (page - 1) * PAGE_SIZE + idx;
             return (
               <div key={member.id} className={`memberRow ${selectedId === member.id ? "active" : ""}`} onClick={() => onSelectMember(member)}>
+                <div>{globalIdx + 1}위</div>
                 <div><strong>{member.nickname}</strong></div>
                 <div>{member.job}</div>
                 <div>{formatAbyss(member)}</div>
-                <div>{globalIdx + 1}위</div>
                 <div className="tagWrap">
                   {member.emblems.length === 0 ? <span className="muted">없음</span> : member.emblems.map((e) => (
                     <span key={e.emblemKey} className="tag">{e.emblemKey.split("|")[1]} {e.count}/9</span>
